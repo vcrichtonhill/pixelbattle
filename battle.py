@@ -1,4 +1,5 @@
 import pygame
+import random
 
 pygame.init()
 
@@ -12,6 +13,12 @@ screen_height = 400 + bottom_panel
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Battle')
+
+#game variables
+current_mage = 1
+total_mage = 2
+action_cooldown = 0
+action_wait_time = 90
 
 #fonts
 font = pygame.font.SysFont('Times New Roman', 26)
@@ -84,7 +91,26 @@ class Mage():
             self.frame_index += 1
 
         if self.frame_index >= len(self.animation_list[self.action]):
-            self.frame_index = 0
+            self.idle()
+
+    def idle(self):
+        self.action = 0
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+    def attack(self, target):
+        #deal damage
+        rand = random.randint(-5, 5)
+        damage = self.strength + rand
+        target.hp -= damage
+        #check if dead
+        if target.hp < 1:
+            target.hp = 0
+            target.alive = False
+        # animation
+        self.action = 1
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
 
     def draw(self):
         screen.blit(self.img, self.rect)
@@ -127,6 +153,30 @@ while run:
     white_mage.draw()
     black_mage.update()
     black_mage.draw()
+
+    # player action
+    if white_mage.alive == True:
+        if current_mage == 1:
+            action_cooldown += 1
+            if action_cooldown >= action_wait_time:
+                #attack
+                white_mage.attack(black_mage)
+                current_mage += 1
+                action_cooldown = 0
+
+    # boss action
+    if black_mage.alive == True:
+        if current_mage == 2:
+            action_cooldown += 1
+            if action_cooldown >= action_wait_time:
+                # attack
+                black_mage.attack(white_mage)
+                current_mage += 1
+                action_cooldown = 0
+
+    # reset current mage
+    if current_mage > total_mage:
+        current_mage = 1
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
