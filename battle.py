@@ -35,6 +35,9 @@ background_img = pygame.image.load('assets/background.png').convert_alpha()
 panel_img = pygame.image.load('assets/panel.png').convert_alpha()
 #fireball cursor
 fireball_img = pygame.image.load('assets/Fireball.png').convert_alpha()
+# potion image
+healspell_img = pygame.image.load('assets/healspell.png').convert_alpha()
+
 
 #drawing text
 def draw_text(text, font, text_col, x, y):
@@ -48,17 +51,18 @@ def draw_panel():
     screen.blit(panel_img, (0, screen_height - bottom_panel))
     #show player stats
     draw_text(f'{white_mage.name} HP: {white_mage.hp}', font, white, 375, screen_height - bottom_panel)
+    draw_text(f'{white_mage.name} Heals left: {white_mage.heals}', font, white, 375, 475)
     draw_text(f'{black_mage.name} HP: {black_mage.hp}', font, red, 75, screen_height - bottom_panel)
 
 # player class
 class Mage():
-    def __init__(self, x, y, name, max_hp, strength, potions):
+    def __init__(self, x, y, name, max_hp, strength, heals):
         self.name = name
         self.max_hp = max_hp
         self.hp = max_hp
         self.strength = strength
-        self.start_potions = potions
-        self.potions = potions
+        self.start_heals = heals
+        self.heals = heals
         self.alive = True
         self.animation_list = []
         self.frame_index = 0
@@ -116,6 +120,20 @@ class Mage():
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+    def heal(self):
+        #heal amount
+        rand = random.randint(-5, 5)
+        heal = self.strength + rand
+        self.hp += heal
+        self.heals -= 1
+        #check if more than health bar
+        if self.hp > self.max_hp:
+            self.hp = self.max_hp
+        # animation
+        # self.action = 1
+        # self.frame_index = 0
+        # self.update_time = pygame.time.get_ticks()
+
     def draw(self):
         screen.blit(self.img, self.rect)
 
@@ -161,16 +179,28 @@ while run:
     #control plater actions
     # reset actions
     attack = False
-    potion = False
-    target = None
+    heal = False
     # mouse visible
     pygame.mouse.set_visible(True)
     pos = pygame.mouse.get_pos()
+
+    #attack
     if black_mage.rect.collidepoint(pos):
         #hide mouse
         pygame.mouse.set_visible(False)
         #show fireball
         screen.blit(fireball_img, pos)
+        if clicked == True:
+            attack = True
+
+    #heal
+    if white_mage.rect.collidepoint(pos):
+        #hide mouse
+        pygame.mouse.set_visible(False)
+        #show fireball
+        screen.blit(healspell_img, pos)
+        if clicked == True:
+            heal = True
 
     # player action
     if white_mage.alive == True:
@@ -178,9 +208,15 @@ while run:
             action_cooldown += 1
             if action_cooldown >= action_wait_time:
                 #attack
-                white_mage.attack(black_mage)
-                current_mage += 1
-                action_cooldown = 0
+                if attack == True:
+                    white_mage.attack(black_mage)
+                    current_mage += 1
+                    action_cooldown = 0
+                #heal
+                if heal == True:
+                    white_mage.heal()
+                    current_mage += 1
+                    action_cooldown = 0
 
     # boss action
     if black_mage.alive == True:
@@ -199,6 +235,10 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            clicked = True
+        else:
+            clicked = False
 
     pygame.display.update()
 
