@@ -19,7 +19,9 @@ current_mage = 1
 total_mage = 2
 action_cooldown = 0
 action_wait_time = 90
-
+attack = False
+potion = False
+clicked = False
 #fonts
 font = pygame.font.SysFont('Times New Roman', 26)
 red = (255, 0, 0)
@@ -31,6 +33,8 @@ white = (255,255,255)
 background_img = pygame.image.load('assets/background.png').convert_alpha()
 # health panel
 panel_img = pygame.image.load('assets/panel.png').convert_alpha()
+#fireball cursor
+fireball_img = pygame.image.load('assets/Fireball.png').convert_alpha()
 
 #drawing text
 def draw_text(text, font, text_col, x, y):
@@ -133,7 +137,7 @@ class HealthBar():
 
 
 white_mage = Mage(450, 325, 'player', 30, 10, 3)
-black_mage = Mage(150, 325, 'boss', 40, 10, 1)
+black_mage = Mage(150, 325, 'boss', 30, 10, 1)
 
 white_mage_health_bar = HealthBar(375, screen_height - bottom_panel + 40, white_mage.hp, white_mage.max_hp)
 black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_mage.hp, black_mage.max_hp)
@@ -153,6 +157,20 @@ while run:
     white_mage.draw()
     black_mage.update()
     black_mage.draw()
+
+    #control plater actions
+    # reset actions
+    attack = False
+    potion = False
+    target = None
+    # mouse visible
+    pygame.mouse.set_visible(True)
+    pos = pygame.mouse.get_pos()
+    if black_mage.rect.collidepoint(pos):
+        #hide mouse
+        pygame.mouse.set_visible(False)
+        #show fireball
+        screen.blit(fireball_img, pos)
 
     # player action
     if white_mage.alive == True:
