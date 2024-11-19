@@ -23,10 +23,11 @@ attack = False
 potion = False
 clicked = False
 #fonts
-font = pygame.font.SysFont('Times New Roman', 26)
+font = pygame.font.SysFont('Monospace', 20)
 red = (255, 0, 0)
 green = (0, 255, 0)
 white = (255,255,255)
+light_blue = (0, 175, 199)
 
 #load images
 # background image
@@ -50,23 +51,23 @@ def draw_bg():
 def draw_panel():
     screen.blit(panel_img, (0, screen_height - bottom_panel))
     #show player stats
-    draw_text(f'{white_mage.name} HP: {white_mage.hp}', font, white, 375, screen_height - bottom_panel)
-    draw_text(f'{white_mage.name} Heals left: {white_mage.heals}', font, white, 375, 475)
-    draw_text(f'{black_mage.name} HP: {black_mage.hp}', font, red, 75, screen_height - bottom_panel)
+    draw_text(f'{white_mage.name} HP: {white_mage.hp}', font, white, 355, 410)
+    draw_text(f'Heals left: {white_mage.heals}', font, white, 375, 475)
+    draw_text(f'{black_mage.name} HP: {black_mage.hp}', font, light_blue, 55, 410)
 
 # player class
 class Mage():
-    def __init__(self, x, y, name, max_hp, strength, heals):
+    def __init__(self, x, y, name, max_hp, magic, heals):
         self.name = name
         self.max_hp = max_hp
         self.hp = max_hp
-        self.strength = strength
+        self.magic = magic
         self.start_heals = heals
         self.heals = heals
         self.alive = True
         self.animation_list = []
         self.frame_index = 0
-        self.action = 0 #0:idle, 1:attack, 2:hurt, 3:dead
+        self.action = 0 #0:idle, 1:attack, 2: heal, 3:hurt, 4:dead
         self.update_time = pygame.time.get_ticks()
 
         #load idle images
@@ -85,6 +86,30 @@ class Mage():
             temp_list.append(img)
         self.animation_list.append(temp_list)
 
+        # load heal images
+        temp_list = []
+        for i in range(8):
+            img = pygame.image.load(f'assets/sprites/{self.name}/heal/{i}.png')
+            img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
+        # load hurt images
+        temp_list = []
+        for i in range(8):
+            img = pygame.image.load(f'assets/sprites/{self.name}/hurt/{i}.png')
+            img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
+        # load death image
+        temp_list = []
+        for i in range(1):
+            img = pygame.image.load(f'assets/sprites/{self.name}/dead/{i}.png')
+            img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
+            temp_list.append(img)
+        self.animation_list.append(temp_list)
+
         self.img = self.animation_list[self.action][self.frame_index]
         self.rect = self.img.get_rect()
         self.rect.center = (x, y)
@@ -99,7 +124,12 @@ class Mage():
             self.frame_index += 1
 
         if self.frame_index >= len(self.animation_list[self.action]):
-            self.idle()
+            if self.hp < 1:
+                self.dead()
+            elif (self.hp / self.max_hp) < 0.5:
+                self.hurt()
+            else:
+                self.idle()
 
     def idle(self):
         self.action = 0
@@ -109,12 +139,16 @@ class Mage():
     def attack(self, target):
         #deal damage
         rand = random.randint(-5, 5)
-        damage = self.strength + rand
+        damage = self.magic + rand
         target.hp -= damage
+        # hurt animation
+        target.hurt()
         #check if dead
         if target.hp < 1:
             target.hp = 0
             target.alive = False
+            target.dead()
+
         # animation
         self.action = 1
         self.frame_index = 0
@@ -123,16 +157,26 @@ class Mage():
     def heal(self):
         #heal amount
         rand = random.randint(-5, 5)
-        heal = self.strength + rand
+        heal = self.magic + rand
         self.hp += heal
         self.heals -= 1
         #check if more than health bar
         if self.hp > self.max_hp:
             self.hp = self.max_hp
         # animation
-        # self.action = 1
-        # self.frame_index = 0
-        # self.update_time = pygame.time.get_ticks()
+        self.action = 2
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+    def hurt(self):
+        self.action = 3
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+
+    def dead(self):
+        self.action = 4
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
 
     def draw(self):
         screen.blit(self.img, self.rect)
@@ -154,8 +198,8 @@ class HealthBar():
 
 
 
-white_mage = Mage(450, 325, 'player', 30, 10, 3)
-black_mage = Mage(150, 325, 'boss', 30, 10, 1)
+white_mage = Mage(450, 325, 'White Mage', 30, 10, 3)
+black_mage = Mage(150, 325, 'Black Mage', 40, 10, 1)
 
 white_mage_health_bar = HealthBar(375, screen_height - bottom_panel + 40, white_mage.hp, white_mage.max_hp)
 black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_mage.hp, black_mage.max_hp)
@@ -223,10 +267,16 @@ while run:
         if current_mage == 2:
             action_cooldown += 1
             if action_cooldown >= action_wait_time:
-                # attack
-                black_mage.attack(white_mage)
-                current_mage += 1
-                action_cooldown = 0
+                #check if need to heal otherwise attack
+                if (black_mage.hp / black_mage.max_hp) < 0.5 and black_mage.heals > 0:
+                    black_mage.heal()
+                    current_mage += 1
+                    action_cooldown = 0
+                else:
+                    # attack
+                    black_mage.attack(white_mage)
+                    current_mage += 1
+                    action_cooldown = 0
 
     # reset current mage
     if current_mage > total_mage:
