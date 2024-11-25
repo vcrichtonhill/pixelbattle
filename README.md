@@ -1,7 +1,7 @@
 # Battle Game with Pygame
 
 A simple turn-based battle game built using the **Pygame** library. This game features two mages (White Mage and Black Mage) engaging in a magical duel. Players can attack or heal during their turns.
-This project was assisted by a wonderful tutorial series by [Coding by Russ](https://www.youtube.com/watch?v=Vlolidaoiak&list=PLjcN1EyupaQnvpv61iriF8Ax9dKra-MhZ&ab_channel=CodingWithRuss). 
+This project was assisted by a wonderful tutorial series by [Coding by Russ](https://www.youtube.com/watch?v=Vlolidaoiak&list=PLjcN1EyupaQnvpv61iriF8Ax9dKra-MhZ&ab_channel=CodingWithRuss). All art was drawn and owned by me.
 
 ## Features
 
@@ -13,10 +13,10 @@ This project was assisted by a wonderful tutorial series by [Coding by Russ](htt
 ---
 ## Screenshots
 ### Battle Scene
-![Two pixel style mages standing in a haunted forest.](/relative/path/to/img.jpg?raw=true "Optional Title")
+![Two pixel style mages standing in a haunted forest.](/screenshots/ForestScreenshot.png "Optional Title")
 
 ### Actions
-![Two pixel style mages battling in a haunted forest. The white mage is attacking the other wit ha fireball spell.](/relative/path/to/img.jpg?raw=true "Optional Title")
+![Two pixel style mages battling in a haunted forest. The white mage is attacking the other wit ha fireball spell.](/screenshots/AttackScreenshot.png "Optional Title")
 
 ---
 
