@@ -72,7 +72,7 @@ class Mage():
 
         #load idle images
         temp_list = []
-        for i in range(8):
+        for i in range(1):
             img = pygame.image.load(f'assets/sprites/{self.name}/idle/{i}.png')
             img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
             temp_list.append(img)
@@ -96,7 +96,7 @@ class Mage():
 
         # load hurt images
         temp_list = []
-        for i in range(8):
+        for i in range(1):
             img = pygame.image.load(f'assets/sprites/{self.name}/hurt/{i}.png')
             img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
             temp_list.append(img)
