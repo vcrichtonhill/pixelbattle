@@ -22,12 +22,24 @@ action_wait_time = 90
 attack = False
 potion = False
 clicked = False
+game_over = 0
+
 #fonts
 font = pygame.font.SysFont('Monospace', 20)
+ko_font = pygame.font.SysFont('Monospace', 50)
 red = (255, 0, 0)
 green = (0, 255, 0)
 white = (255,255,255)
 light_blue = (0, 175, 199)
+
+# restart text
+restart_text = 'RESTART'
+restart_font = font
+restart_x, restart_y = 250, 125
+restart_color = green if game_over == 1 else red
+# Define a rect for restart
+restart_img = restart_font.render(restart_text, True, restart_color)
+restart_rect = restart_img.get_rect(topleft=(restart_x, restart_y))
 
 #load images
 # background image
@@ -96,7 +108,7 @@ class Mage():
 
         # load hurt images
         temp_list = []
-        for i in range(1):
+        for i in range(6):
             img = pygame.image.load(f'assets/sprites/{self.name}/hurt/{i}.png')
             img = pygame.transform.scale(img, (img.get_width() * 2.5, img.get_height() * 2.5))
             temp_list.append(img)
@@ -154,12 +166,16 @@ class Mage():
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+
     def heal(self):
         #heal amount
         rand = random.randint(-5, 5)
         heal = self.magic + rand
-        self.hp += heal
-        self.heals -= 1
+        if self.heals <= 0:
+            return
+        else:
+            self.hp += heal
+            self.heals -= 1
         #check if more than health bar
         if self.hp > self.max_hp:
             self.hp = self.max_hp
@@ -168,18 +184,31 @@ class Mage():
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+
     def hurt(self):
         self.action = 3
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
+
 
     def dead(self):
         self.action = 4
         self.frame_index = 0
         self.update_time = pygame.time.get_ticks()
 
+
+    def reset(self):
+        self.alive = True
+        self.heals = self.start_heals
+        self.hp = self.max_hp
+        self.frame_index = 0
+        self.action = 0
+        self.update_time = pygame.time.get_ticks()
+
+
     def draw(self):
         screen.blit(self.img, self.rect)
+
 
 
 class HealthBar():
@@ -199,7 +228,7 @@ class HealthBar():
 
 
 white_mage = Mage(450, 325, 'White Mage', 30, 10, 3)
-black_mage = Mage(150, 325, 'Black Mage', 40, 10, 1)
+black_mage = Mage(150, 325, 'Black Mage', 35, 10, 1)
 
 white_mage_health_bar = HealthBar(375, screen_height - bottom_panel + 40, white_mage.hp, white_mage.max_hp)
 black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_mage.hp, black_mage.max_hp)
@@ -246,42 +275,66 @@ while run:
         if clicked == True:
             heal = True
 
-    # player action
-    if white_mage.alive == True:
-        if current_mage == 1:
-            action_cooldown += 1
-            if action_cooldown >= action_wait_time:
-                #attack
-                if attack == True:
-                    white_mage.attack(black_mage)
-                    current_mage += 1
-                    action_cooldown = 0
-                #heal
-                if heal == True:
-                    white_mage.heal()
-                    current_mage += 1
-                    action_cooldown = 0
+    if game_over == 0:
+        # player action
+        if white_mage.alive == True:
+            if current_mage == 1:
+                action_cooldown += 1
+                if action_cooldown >= action_wait_time:
+                    #attack
+                    if attack == True:
+                        white_mage.attack(black_mage)
+                        current_mage += 1
+                        action_cooldown = 0
+                    #heal
+                    if heal == True:
+                        white_mage.heal()
+                        current_mage += 1
+                        action_cooldown = 0
+        else:
+            game_over = -1
 
-    # boss action
-    if black_mage.alive == True:
-        if current_mage == 2:
-            action_cooldown += 1
-            if action_cooldown >= action_wait_time:
-                #check if need to heal otherwise attack
-                if (black_mage.hp / black_mage.max_hp) < 0.5 and black_mage.heals > 0:
-                    black_mage.heal()
-                    current_mage += 1
-                    action_cooldown = 0
-                else:
-                    # attack
-                    black_mage.attack(white_mage)
-                    current_mage += 1
-                    action_cooldown = 0
+        # boss action
+        if black_mage.alive == True:
+            if current_mage == 2:
+                action_cooldown += 1
+                if action_cooldown >= action_wait_time:
+                    #check if need to heal otherwise attack
+                    if (black_mage.hp / black_mage.max_hp) < 0.5 and black_mage.heals > 0:
+                        black_mage.heal()
+                        current_mage += 1
+                        action_cooldown = 0
+                    else:
+                        # attack
+                        black_mage.attack(white_mage)
+                        current_mage += 1
+                        action_cooldown = 0
+        else:
+            game_over = 1
+
+    if game_over != 0:
+        if game_over == 1:
+            draw_text('VICTORY!', ko_font, green, 175, 75)
+        if game_over == -1:
+            draw_text('DEFEAT', ko_font, red, 205, 75)
+
+        # Render restart text and display it
+        restart_surface = restart_font.render(restart_text, True, (255, 255, 0) if restart_rect.collidepoint(pos) else restart_color)
+        screen.blit(restart_surface, restart_rect.topleft)
+
+        # Check if clicked on restart
+        if restart_rect.collidepoint(pos) and clicked:
+            game_over = 0
+            white_mage.reset()
+            black_mage.reset()
+            current_mage = 1
+            action_cooldown = 0
 
     # reset current mage
     if current_mage > total_mage:
         current_mage = 1
 
+    #clicked event logic
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
