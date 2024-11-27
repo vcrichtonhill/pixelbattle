@@ -2,8 +2,6 @@ import pygame
 import random
 import asyncio
 
-COUNT_DOWN = 3
-
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -238,8 +236,7 @@ black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_m
 
 
 async def main():
-    global COUNT_DOWN, game_over, current_mage, action_cooldown
-
+    global game_over, current_mage, action_cooldown
 
     run = True
     while run:
@@ -256,12 +253,6 @@ async def main():
         white_mage.draw()
         black_mage.update()
         black_mage.draw()
-
-        print(f"""
-
-                    Hello[{COUNT_DOWN}] from Python
-
-        """)
 
         #control plater actions
         # reset actions
@@ -357,16 +348,9 @@ async def main():
             else:
                 clicked = False
 
-        await asyncio.sleep(0)  # Very important, and keep it 0
-
-        if not COUNT_DOWN:
-            return
-
-        COUNT_DOWN = COUNT_DOWN - 1
-
         pygame.display.update()
 
-
+        await asyncio.sleep(0)  # Very important, and keep it 0
 
     pygame.quit()
 
