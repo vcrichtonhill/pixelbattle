@@ -1,5 +1,8 @@
 import pygame
 import random
+import asyncio
+
+COUNT_DOWN = 3
 
 pygame.init()
 
@@ -233,130 +236,138 @@ black_mage = Mage(150, 325, 'Black Mage', 35, 10, 1)
 white_mage_health_bar = HealthBar(375, screen_height - bottom_panel + 40, white_mage.hp, white_mage.max_hp)
 black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_mage.hp, black_mage.max_hp)
 
-def wait_for_click():
-    print("Click anywhere to start")  # Prompt the user
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # Allow the user to quit while waiting
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:  # Start the game on mouse click
-                waiting = False
 
-    # Wait for the user to click before starting
-wait_for_click()
+async def main():
+    global COUNT_DOWN, game_over, current_mage, action_cooldown
 
-run = True
-while run:
 
-    clock.tick(fps)
+    run = True
+    while run:
 
-    # draw images
-    draw_bg()
-    draw_panel()
-    white_mage_health_bar.draw(white_mage.hp)
-    black_mage_health_bar.draw(black_mage.hp)
+        clock.tick(fps)
 
-    white_mage.update()
-    white_mage.draw()
-    black_mage.update()
-    black_mage.draw()
+        # draw images
+        draw_bg()
+        draw_panel()
+        white_mage_health_bar.draw(white_mage.hp)
+        black_mage_health_bar.draw(black_mage.hp)
 
-    #control plater actions
-    # reset actions
-    attack = False
-    heal = False
-    # mouse visible
-    pygame.mouse.set_visible(True)
-    pos = pygame.mouse.get_pos()
+        white_mage.update()
+        white_mage.draw()
+        black_mage.update()
+        black_mage.draw()
 
-    #attack
-    if black_mage.rect.collidepoint(pos):
-        #hide mouse
-        pygame.mouse.set_visible(False)
-        #show fireball
-        screen.blit(fireball_img, pos)
-        if clicked == True:
-            attack = True
+        print(f"""
 
-    #heal
-    if white_mage.rect.collidepoint(pos):
-        #hide mouse
-        pygame.mouse.set_visible(False)
-        #show fireball
-        screen.blit(healspell_img, pos)
-        if clicked == True:
-            heal = True
+                    Hello[{COUNT_DOWN}] from Python
 
-    if game_over == 0:
-        # player action
-        if white_mage.alive == True:
-            if current_mage == 1:
-                action_cooldown += 1
-                if action_cooldown >= action_wait_time:
-                    #attack
-                    if attack == True:
-                        white_mage.attack(black_mage)
-                        current_mage += 1
-                        action_cooldown = 0
-                    #heal
-                    if heal == True:
-                        white_mage.heal()
-                        current_mage += 1
-                        action_cooldown = 0
-        else:
-            game_over = -1
+        """)
 
-        # boss action
-        if black_mage.alive == True:
-            if current_mage == 2:
-                action_cooldown += 1
-                if action_cooldown >= action_wait_time:
-                    #check if need to heal otherwise attack
-                    if (black_mage.hp / black_mage.max_hp) < 0.5 and black_mage.heals > 0:
-                        black_mage.heal()
-                        current_mage += 1
-                        action_cooldown = 0
-                    else:
-                        # attack
-                        black_mage.attack(white_mage)
-                        current_mage += 1
-                        action_cooldown = 0
-        else:
-            game_over = 1
+        #control plater actions
+        # reset actions
+        attack = False
+        heal = False
+        # mouse visible
+        pygame.mouse.set_visible(True)
+        pos = pygame.mouse.get_pos()
 
-    if game_over != 0:
-        if game_over == 1:
-            draw_text('VICTORY!', ko_font, green, 175, 75)
-        if game_over == -1:
-            draw_text('DEFEAT', ko_font, red, 205, 75)
+        #attack
+        if black_mage.rect.collidepoint(pos):
+            #hide mouse
+            pygame.mouse.set_visible(False)
+            #show fireball
+            screen.blit(fireball_img, pos)
+            if clicked == True:
+                attack = True
 
-        # Render restart text and display it
-        restart_surface = restart_font.render(restart_text, True, (255, 255, 0) if restart_rect.collidepoint(pos) else restart_color)
-        screen.blit(restart_surface, restart_rect.topleft)
+        #heal
+        if white_mage.rect.collidepoint(pos):
+            #hide mouse
+            pygame.mouse.set_visible(False)
+            #show fireball
+            screen.blit(healspell_img, pos)
+            if clicked == True:
+                heal = True
 
-        # Check if clicked on restart
-        if restart_rect.collidepoint(pos) and clicked:
-            game_over = 0
-            white_mage.reset()
-            black_mage.reset()
+        if game_over == 0:
+            # player action
+            if white_mage.alive == True:
+                if current_mage == 1:
+                    action_cooldown += 1
+                    if action_cooldown >= action_wait_time:
+                        #attack
+                        if attack == True:
+                            white_mage.attack(black_mage)
+                            current_mage += 1
+                            action_cooldown = 0
+                        #heal
+                        if heal == True:
+                            white_mage.heal()
+                            current_mage += 1
+                            action_cooldown = 0
+            else:
+                game_over = -1
+
+            # boss action
+            if black_mage.alive == True:
+                if current_mage == 2:
+                    action_cooldown += 1
+                    if action_cooldown >= action_wait_time:
+                        #check if need to heal otherwise attack
+                        if (black_mage.hp / black_mage.max_hp) < 0.5 and black_mage.heals > 0:
+                            black_mage.heal()
+                            current_mage += 1
+                            action_cooldown = 0
+                        else:
+                            # attack
+                            black_mage.attack(white_mage)
+                            current_mage += 1
+                            action_cooldown = 0
+            else:
+                game_over = 1
+
+        if game_over != 0:
+            if game_over == 1:
+                draw_text('VICTORY!', ko_font, green, 175, 75)
+            if game_over == -1:
+                draw_text('DEFEAT', ko_font, red, 205, 75)
+
+            # Render restart text and display it
+            restart_surface = restart_font.render(restart_text, True, (255, 255, 0) if restart_rect.collidepoint(pos) else restart_color)
+            screen.blit(restart_surface, restart_rect.topleft)
+
+            # Check if clicked on restart
+            if restart_rect.collidepoint(pos) and clicked:
+                game_over = 0
+                white_mage.reset()
+                black_mage.reset()
+                current_mage = 1
+                action_cooldown = 0
+
+        # reset current mage
+        if current_mage > total_mage:
             current_mage = 1
-            action_cooldown = 0
 
-    # reset current mage
-    if current_mage > total_mage:
-        current_mage = 1
+        #clicked event logic
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                clicked = True
+            else:
+                clicked = False
 
-    #clicked event logic
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            clicked = True
-        else:
-            clicked = False
+        await asyncio.sleep(0)  # Very important, and keep it 0
 
-    pygame.display.update()
+        if not COUNT_DOWN:
+            return
 
-pygame.quit()
+        COUNT_DOWN = COUNT_DOWN - 1
+
+        pygame.display.update()
+
+
+
+    pygame.quit()
+
+asyncio.run(main())
