@@ -233,6 +233,20 @@ black_mage = Mage(150, 325, 'Black Mage', 35, 10, 1)
 white_mage_health_bar = HealthBar(375, screen_height - bottom_panel + 40, white_mage.hp, white_mage.max_hp)
 black_mage_health_bar = HealthBar(75, screen_height - bottom_panel + 40, black_mage.hp, black_mage.max_hp)
 
+def wait_for_click():
+    print("Click anywhere to start")  # Prompt the user
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # Allow the user to quit while waiting
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:  # Start the game on mouse click
+                waiting = False
+
+    # Wait for the user to click before starting
+wait_for_click()
+
 run = True
 while run:
 
